@@ -7,6 +7,7 @@ from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
 
 def forwardPass(X, mask, transformationMatrix):
+    X = jnp.exp(1j * jnp.pi * X) #phase encoding, can be switched on or off
     maskedInput = X * mask                              # E_in[k, n] = X[k, n] * M[n]   (N, 64)
     fieldOut = transformationMatrix @ maskedInput.T     # E_out = T E_in                (64, N), complex
     intensity = fieldOut.real**2 + fieldOut.imag**2     # I = |E_out|^2                 (64, N)
