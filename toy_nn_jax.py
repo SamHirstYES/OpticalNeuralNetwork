@@ -6,15 +6,15 @@ import matplotlib.pyplot as plt
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
 
-numPixels = 2 #number of pixels in mask per pixel in input image X 
+numPixels = 3 #number of pixels in mask per pixel in input image X 
 
 def forwardPass(X, mask, transformationMatrix):
     X = jnp.exp(1j * jnp.pi * X) #phase encoding, can be switched on or off
     X = jnp.repeat(X, numPixels, axis=1)
-    maskedInput = X * mask                              # E_in[k, n] = X[k, n] * M[n]   (N, 64)
-    fieldOut = transformationMatrix @ maskedInput.T     # E_out = T E_in                (64, N), complex
-    intensity = fieldOut.real**2 + fieldOut.imag**2     # I = |E_out|^2                 (64, N)
-    return intensity.T                                  # one row of 64 intensities per image (N, 64)
+    maskedInput = X * mask
+    fieldOut = transformationMatrix @ maskedInput.T
+    intensity = fieldOut.real**2 + fieldOut.imag**2
+    return intensity.T
 
 def classScores(intensity):
     return intensity[:, :60].reshape(-1, 10, 6).sum(axis=2)   # reshapes the intensity to be a vector of length 10, a score for each digit, 0-5 is 0; 6-11 is 1...
