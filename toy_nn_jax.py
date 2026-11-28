@@ -6,8 +6,11 @@ import matplotlib.pyplot as plt
 from sklearn.datasets import load_digits
 from sklearn.model_selection import train_test_split
 
+numPixels = 2 #number of pixels in mask per pixel in input image X 
+
 def forwardPass(X, mask, transformationMatrix):
     X = jnp.exp(1j * jnp.pi * X) #phase encoding, can be switched on or off
+    X = jnp.repeat(X, numPixels, axis=1)
     maskedInput = X * mask                              # E_in[k, n] = X[k, n] * M[n]   (N, 64)
     fieldOut = transformationMatrix @ maskedInput.T     # E_out = T E_in                (64, N), complex
     intensity = fieldOut.real**2 + fieldOut.imag**2     # I = |E_out|^2                 (64, N)
@@ -34,10 +37,10 @@ Y = digits.target.astype(np.int64) #vector of target digits
 X_temp, X_test, Y_temp, Y_test = train_test_split(X, Y, test_size=270, stratify=Y, random_state=0)
 X_train, X_val, Y_train, Y_val = train_test_split(X_temp, Y_temp, test_size=270, stratify=Y_temp, random_state=0)
 
-mask = np.random.rand(len(X[0])).astype(np.float32) #one shared trainable mask, 64 weights
+mask = np.random.rand(numPixels*len(X[0])).astype(np.float32) #one shared trainable mask, 64 weights
 
 # fixed complex transmission matrix, generated once and never updated
-transformMatrix = (np.random.randn(len(X[0]), len(X[0])) + 1j*np.random.randn(len(X[0]), len(X[0])))/np.sqrt(2*len(X[0]))
+transformMatrix = (np.random.randn(numPixels*len(X[0]), numPixels*len(X[0])) + 1j*np.random.randn(numPixels*len(X[0]), numPixels*len(X[0])))/np.sqrt(2*numPixels*len(X[0]))
 transformMatrix = transformMatrix.astype(np.complex64)
 
 X_train, X_val, X_test = jnp.array(X_train), jnp.array(X_val), jnp.array(X_test)
